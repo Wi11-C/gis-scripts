@@ -3,10 +3,10 @@ from PyQt5 import QtWidgets
 import os, sys, shutil, re
 
 geopackage_name = "RoadDB.gpkg"
-map_name = "Offline-Map.qgs"
+map_name = "Roadway.qgs"
 
-network_dir = os.path.join("C:", os.sep, "Users", "Will", "Desktop", "GIS", "Network")
-local_pkg_dir =  os.path.join(os.path.expanduser("~"), "Documents", "QGIS-Local")
+network_dir = os.path.join("F:", os.sep, "ROADWAY", "WCarey", "GIS")
+local_pkg_dir =  os.path.join(os.path.expanduser("~"), "MY Documents", "QGIS-Local")
 
 def read_file(file):
     f = open(file, "r")
