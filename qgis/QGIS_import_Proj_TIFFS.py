@@ -198,9 +198,9 @@ def remove_features_by_id(layer, arr_feature_ids):
     print ("Total Features remvoved {}".format(total_removed))
     return
 
-process_project_dir(r'F:\Internal-E\Work\TRENCH')
+# process_project_dir(r'F:\Internal-E\Work\TRENCH')
 # process_project_dir(r'F:\Internal-E\Work\Non-trench Projects')
-# process_project_dir(r'F:\Internal-E\Work\AlreadyGIS')
+process_project_dir(r'F:\Internal-E\Work\AlreadyGIS')
 
 layer_containing_some_dups = QgsVectorLayer(raster_outline_geopackage_path, raster_outline_geopacakge_name, 'ogr') #the default layer name is the name of the package
 feature_ids_to_remove = shapes_outside_domain(layer_containing_some_dups)
