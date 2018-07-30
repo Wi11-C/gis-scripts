@@ -198,7 +198,7 @@ def remove_features_by_id(layer, arr_feature_ids):
     print ("Total Features remvoved {}".format(total_removed))
     return
 
-# process_project_dir(r'F:\Internal-E\Work\TRENCH')
+process_project_dir(r'F:\Internal-E\Work\TRENCH')
 # process_project_dir(r'F:\Internal-E\Work\Non-trench Projects')
 process_project_dir(r'F:\Internal-E\Work\AlreadyGIS')
 
