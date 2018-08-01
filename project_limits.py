@@ -62,26 +62,29 @@ def combine_layers(dissolved_roads_layer, dissolved_canals_layer):
     return out_layer
 
 def create_intersection_points_layer(dissolved_road_layer, intersecting_line_layer):
-    count = 0
     print ('Making points')
     timer_start = time.time()
-    points_of_intersection = QgsVectorLayer("Point?crs=EPSG:102658&index=yes", "result", "memory")
-    index = QgsSpatialIndex(dissolved_road_layer.getFeatures())
-    # for f in dissolved_road_layer.getFeatures():
-    #     index.insertFeature(f)
-    for subject_feature in dissolved_road_layer.getFeatures():
-        features_close_to_subject_feature = index.intersects(subject_feature.geometry().boundingBox())
-        for close_feature in features_close_to_subject_feature:
-            if not close_feature.geometry().equals(subject_feature.geometry()):
-                if (close_feature.geometry().intersects(subject_feature.geometry())):
-                    # print (f[0])
-                    # points_of_intersection = f.geometry().intersection(feature.geometry())
-                    line_layer_prime = QgsVectorLayer("LineString?crs=EPSG:102658&index=yes", "result1", "memory")
-                    line_layer_sub = QgsVectorLayer("LineString?crs=EPSG:102658&index=yes", "result2", "memory")
-                    with edit(line_layer_prime):
-                        line_layer_prime.dataProvider().addFeature(subject_feature)
-                    with edit(line_layer_sub):
-                        line_layer_sub.dataProvider().addFeature(f)
+    out_layer = QgsVectorLayer("Point?crs=EPSG:102658&index=yes", "result", "memory")
+    out_layer.dataProvider().addAttributes([QgsField("NAME", QVariant.String,'text',80)])
+    feature_index = QgsSpatialIndex(intersecting_line_layer.getFeatures())
+
+    for road_feature in dissolved_road_layer.getFeatures():
+        features_close_to_subject_road = feature_index.intersects(road_feature.geometry().boundingBox()) #Index will only accept rectange
+        for close_fid in features_close_to_subject_road:
+            close_feature = intersecting_line_layer.getFeature(close_fid)
+            if (close_feature.geometry().intersects(road_feature.geometry())):                           #Possible bounding boxes collide but not features themselves
+                if not close_feature.geometry().equals(road_feature.geometry()):                         #We may run a layer against itself. Don't match feature to itself
+                    pt = road_feature.geometry().intersection(close_feature.geometry())
+                    with edit(out_layer):
+                        out_layer.dataProvider().addFeature(pt)
+                        # TODO: Figure out how to add attribute to feature before uploading feature to layer dataprovider
+                    print (points_of_intersection.asWkt())
+                    # line_layer_prime = QgsVectorLayer("LineString?crs=EPSG:102658&index=yes", "result1", "memory")
+                    # line_layer_sub = QgsVectorLayer("LineString?crs=EPSG:102658&index=yes", "result2", "memory")
+                    # with edit(line_layer_prime):
+                    #     line_layer_prime.dataProvider().addFeature(road_feature)
+                    # with edit(line_layer_sub):
+                    #     line_layer_sub.dataProvider().addFeature(close_fid)
 
                     # print (points_of_intersection.asWkt())
     print ("Custom intersection pulled {} points".format(count))
@@ -145,7 +148,7 @@ for fea in result_layer.getFeatures():
 
 print ("{} total".format(count)) 
 
-points_of_intersection = create_intersection_points_layer(result_layer)
+points_of_intersection = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_canals)
 
 count = 0
 for fea in points_of_intersection.getFeatures():
