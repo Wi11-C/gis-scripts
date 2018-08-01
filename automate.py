@@ -16,10 +16,7 @@ def PushToNetwork():
 def Make_geopackage(Arr_layers):
     print ('Making Geopackage')
     feedback = QgsProcessingFeedback()
-    ret = processing.run("native:package", { 'LAYERS' : Layers_to_package, 'OUTPUT' : config.local_geopackage_path, 'OVERWRITE' : True }, feedback=feedback)
-    # print(feedback)
-    # output = ret['OUTPUT']
-    # print (output)
+    processing.run("native:package", { 'LAYERS' : Layers_to_package, 'OUTPUT' : config.local_geopackage_path, 'OVERWRITE' : True }, feedback=feedback)
     return
 
 def Add_township_section_to_geopackage():
