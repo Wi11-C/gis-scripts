@@ -64,6 +64,7 @@ def combine_layers(dissolved_roads_layer, dissolved_canals_layer):
 def create_intersection_points_layer(dissolved_road_layer, intersecting_line_layer):
     print ('Making points')
     timer_start = time.time()
+    feature_id_counter = 1
     out_layer = QgsVectorLayer("Point?crs=EPSG:102658&index=yes", "result", "memory")
     out_layer.dataProvider().addAttributes([QgsField("NAME", QVariant.String,'text',80)])
     feature_index = QgsSpatialIndex(intersecting_line_layer.getFeatures())
@@ -75,34 +76,39 @@ def create_intersection_points_layer(dissolved_road_layer, intersecting_line_lay
             if (close_feature.geometry().intersects(road_feature.geometry())):                           #Possible bounding boxes collide but not features themselves
                 if not close_feature.geometry().equals(road_feature.geometry()):                         #We may run a layer against itself. Don't match feature to itself
                     pt = road_feature.geometry().intersection(close_feature.geometry())
+                    loc_name = close_feature['CANAL_NAME']
+                    loc_feat = QgsFeature()
+                    loc_feat.setGeometry(pt)
                     with edit(out_layer):
-                        out_layer.dataProvider().addFeature(pt)
-                        # TODO: Figure out how to add attribute to feature before uploading feature to layer dataprovider
-                    print (points_of_intersection.asWkt())
-                    # line_layer_prime = QgsVectorLayer("LineString?crs=EPSG:102658&index=yes", "result1", "memory")
-                    # line_layer_sub = QgsVectorLayer("LineString?crs=EPSG:102658&index=yes", "result2", "memory")
-                    # with edit(line_layer_prime):
-                    #     line_layer_prime.dataProvider().addFeature(road_feature)
-                    # with edit(line_layer_sub):
-                    #     line_layer_sub.dataProvider().addFeature(close_fid)
-
-                    # print (points_of_intersection.asWkt())
-    print ("Custom intersection pulled {} points".format(count))
+                        x = out_layer.dataProvider().addFeature(loc_feat)
+                        out_layer.changeAttributeValue(feature_id_counter, 0, loc_name)
+                        feature_id_counter += 1
+    
     timer_end = time.time()
     print ("{} took {} seconds".format(create_intersection_points_layer.__name__, round(timer_end - timer_start, 2)))
-    timer_start = time.time()
+    print ("{} points of intersection found".format(feature_id_counter))
+   
+    return out_layer
 
-    params = {
-        'INPUT': dissolved_road_layer,
-        'INTERSECT': dissolved_road_layer,
-        'INPUT_FIELDS':['NAME'],
-        'INTERSECT_FIELDS':['NAME'],
-        'OUTPUT':'memory:'
-        }
-    points_of_intersection_slow = processing.run("native:lineintersections", params)
-    timer_end = time.time()
-    print ("{} took {} seconds".format(create_intersection_points_layer.__name__, round(timer_end - timer_start, 2)))
-    return points_of_intersection_slow
+# def points_intersection_slow(road_layer, intersect_layer):
+#     feature_id_counter = 0
+#     timer_start = time.time()
+
+#     params = {
+#         'INPUT': dissolved_road_layer,
+#         'INTERSECT': intersecting_line_layer,
+#         'INPUT_FIELDS':['NAME'],
+#         'INTERSECT_FIELDS':['CANAL_NAME'],
+#         'OUTPUT':'memory:'
+#         }
+#     points_of_intersection_slow = processing.run("native:lineintersections", params)['OUTPUT']
+#     timer_end = time.time()
+#     print ("{} took {} seconds".format(create_intersection_points_layer.__name__, round(timer_end - timer_start, 2)))
+#     feature_id_counter = 0
+#     for f in points_of_intersection_slow.getFeatures():
+#         feature_id_counter += 1
+#     print ("{} points of intersection found".format(feature_id_counter))
+#     return
 
 # def make_points(layer):
 
@@ -149,6 +155,7 @@ for fea in result_layer.getFeatures():
 print ("{} total".format(count)) 
 
 points_of_intersection = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_canals)
+# points_of_intersection_slow(temp_dissolved_roads, temp_dissolved_canals)
 
 count = 0
 for fea in points_of_intersection.getFeatures():
