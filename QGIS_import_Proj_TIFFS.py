@@ -4,9 +4,7 @@ from qgis.analysis import QgsNativeAlgorithms
 from PyQt5.QtCore import QVariant
 
 # Provide constants
-local_gis_working_dir = os.path.join("C:", os.sep, "Users", "Will", "Desktop", "GIS")
-geopackage_name = "RoadDB.gpkg"
-local_geopackage_path = os.path.join(local_gis_working_dir, geopackage_name)
+local_gis_working_dir = os.path.join("C:", os.sep, "Users", os.getlogin(), "Desktop", "GIS")
 
 #start app in background
 QgsApplication.setPrefixPath(r"C:\Program Files\QGIS 3.2", True)
@@ -21,8 +19,8 @@ import processing
 QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
 
 
-raster_outline_geopacakge_name = 'old_projects2'
-raster_outline_geopackage_path = os.path.join(r'C:/Users/Will/Desktop', raster_outline_geopacakge_name) + '.gpkg'
+raster_outline_geopacakge_name = 'old_projects_test'
+raster_outline_geopackage_path = os.path.join(local_gis_working_dir, raster_outline_geopacakge_name) + '.gpkg'
 first_run = True
 total_tiffs = 0
 georeferenced_tiffs = 0
@@ -54,7 +52,7 @@ def add_properties_to_new_feature(proj_no, proj_name, sheet_no):
             outline_layer.changeAttributeValue(f.id(), 4, sheet_no)
     return
 
-def Add_Rater_outline_to_geopackage(image_path, proj_name):
+def Add_Rater_outline_to_geopackage(image_path):
     lay = QgsRasterLayer(image_path)
     lay.setCrs(QgsCoordinateReferenceSystem('EPSG:102658'))
     params = {
@@ -84,7 +82,7 @@ def get_sister_file_name(tif_file_path):
 
 def get_sheet_no(tif_file_path):
     try:
-        sheet_number = re.search(r'(?:sheet\s+)(\w+)', tif_file_path, re.IGNORECASE).group(0)
+        sheet_number = re.search(r'(?:sheet[\s|_]+)(\w+)', tif_file_path, re.IGNORECASE).group(0) #TODO: Get only sheet number
     except AttributeError:
         sheet_number = ''
         print ('No sheet number for the following file: ' + tif_file_path)
@@ -120,7 +118,7 @@ def index_folder(folder_path):
             if (proj_no != ''):
                 folder_captured_tiffs += 1
                 captured_tiffs += 1
-                Add_Rater_outline_to_geopackage(f, proj_name)
+                Add_Rater_outline_to_geopackage(f)
                 add_properties_to_new_feature(proj_no, proj_name, sheet_no)
     try:
         capture_eff = captured_tiffs/total_tiffs * 100
@@ -198,9 +196,12 @@ def remove_features_by_id(layer, arr_feature_ids):
     print ("Total Features remvoved {}".format(total_removed))
     return
 
-process_project_dir(r'F:\Internal-E\Work\TRENCH')
-process_project_dir(r'F:\Internal-E\Work\Non-trench Projects')
-process_project_dir(r'F:\Internal-E\Work\AlreadyGIS')
+process_project_dir(r'P:\DGN\KLE\GIS\RECTIFIED_PBC_DRAINAGE_SHEETS\NON_TRENCH')
+process_project_dir(r'P:\DGN\KLE\GIS\RECTIFIED_PBC_DRAINAGE_SHEETS\TRENCH')
+
+# process_project_dir(r'F:\Internal-E\Work\TRENCH')
+# process_project_dir(r'F:\Internal-E\Work\Non-trench Projects')
+# process_project_dir(r'F:\Internal-E\Work\AlreadyGIS')
 
 layer_containing_some_dups = QgsVectorLayer(raster_outline_geopackage_path, raster_outline_geopacakge_name, 'ogr') #the default layer name is the name of the package
 feature_ids_to_remove = shapes_outside_domain(layer_containing_some_dups)

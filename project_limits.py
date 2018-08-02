@@ -4,7 +4,7 @@ from qgis.analysis import QgsNativeAlgorithms
 from PyQt5.QtCore import QVariant
 
 # Provide constants
-local_gis_working_dir = os.path.join("C:", os.sep, "Users", "Will", "Desktop", "GIS")
+local_gis_working_dir = os.path.join("C:", os.sep, "Users", os.getlogin(), "Desktop", "GIS")
 local_shape_dir = os.path.join(local_gis_working_dir, "NEWDB")
 geopackage_name = "RoadDB.gpkg"
 local_geopackage_path = os.path.join(local_gis_working_dir, geopackage_name)
