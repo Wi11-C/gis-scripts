@@ -1,4 +1,4 @@
-import re
+import re, os
 
 def correct_link(Link): #For some reason the links are stored as python paths with doubble slashes...which need to be changed to single slashes in the attribute field
     corrected_link = Link.replace('\\\\', '\\')
@@ -17,7 +17,7 @@ def get_sister_file_name(tif_file_path):
 
 def get_sheet_no(tif_file_path):
     try:
-        sheet_number = re.search(r'(?:sheet[\s|_]+)(\w+)', tif_file_path, re.IGNORECASE).group(0) #TODO: Get only sheet number
+        sheet_number = re.search(r'(?:sheet[\s|_]+)(\w+)', tif_file_path, re.IGNORECASE).group(1)
     except AttributeError:
         sheet_number = ''
         print ('No sheet number for the following file: ' + tif_file_path)

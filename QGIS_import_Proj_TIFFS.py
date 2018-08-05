@@ -1,4 +1,4 @@
-import os, sys, shutil, glob, re
+import os, sys, shutil, glob
 from qgis.core import *
 from qgis.analysis import QgsNativeAlgorithms
 from PyQt5.QtCore import QVariant

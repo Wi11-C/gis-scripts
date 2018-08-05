@@ -2,22 +2,17 @@ import os, sys, shutil, glob, re, time
 from qgis.core import *
 from qgis.analysis import QgsNativeAlgorithms
 from PyQt5.QtCore import QVariant
+from env_config import config
 
 # Provide constants
-local_gis_working_dir = os.path.join("C:", os.sep, "Users", os.getlogin(), "Desktop", "GIS")
-local_shape_dir = os.path.join(local_gis_working_dir, "NEWDB")
-geopackage_name = "RoadDB.gpkg"
-local_geopackage_path = os.path.join(local_gis_working_dir, geopackage_name)
-network_dir = os.path.join("C:", os.sep, "Users", "Will", "Desktop", "GIS", "Network")
-network_geopackage_path = os.path.join(network_dir, geopackage_name)
 
-
+env = config()
 QgsApplication.setPrefixPath(r"C:\Program Files\QGIS 3.2", True)
 app = QgsApplication([], False)
 QgsApplication.initQgis()
 
 project = QgsProject.instance()
-project.read(os.path.join(local_gis_working_dir, 'MakePackageMap.qgs'))
+project.read(os.path.join(env.local_gis_working_dir, 'MakePackageMap.qgs'))
 
 sys.path.append(r'C:\Program Files\QGIS 3.2\apps\qgis\python\plugins')
 from processing.core.Processing import Processing
@@ -80,7 +75,7 @@ def create_intersection_points_layer(dissolved_road_layer, intersecting_line_lay
                     loc_feat = QgsFeature()
                     loc_feat.setGeometry(pt)
                     with edit(out_layer):
-                        x = out_layer.dataProvider().addFeature(loc_feat)
+                        out_layer.dataProvider().addFeature(loc_feat)
                         out_layer.changeAttributeValue(feature_id_counter, 0, loc_name)
                         feature_id_counter += 1
     
@@ -114,7 +109,7 @@ def create_intersection_points_layer(dissolved_road_layer, intersecting_line_lay
 
 #     return point_layer
 
-lay_roads = QgsVectorLayer(os.path.join(local_shape_dir, 'ENG.CENTERLINE.shp'), 'Roads', 'ogr')
+lay_roads = QgsVectorLayer(os.path.join(env.local_shape_dir, 'ENG.CENTERLINE.shp'), 'Roads', 'ogr')
 count = 0
 
 for fea in lay_roads.getFeatures():
@@ -122,8 +117,9 @@ for fea in lay_roads.getFeatures():
 
 print ("{} roads".format(count)) 
 
+
 # Load and reproject the LWDD Canal Layer before combining it with the road layer
-lay_canals = processing.run("native:reprojectlayer", {'INPUT':os.path.join(local_shape_dir, 'Export_LWDD.shp'),'TARGET_CRS':'EPSG:102658','OUTPUT':'memory:'})['OUTPUT']
+lay_canals = processing.run("native:reprojectlayer", {'INPUT':os.path.join(env.local_shape_dir, 'Export_LWDD.shp'),'TARGET_CRS':'EPSG:102658','OUTPUT':'memory:'})['OUTPUT']
 
 count = 0
 
@@ -164,10 +160,8 @@ for fea in points_of_intersection.getFeatures():
 print ("{} intersection points".format(count)) 
 
 # Save output
-# provider = result_layer.dataProvider()
-# QgsVectorFileWriter.writeAsVectorFormat(result_layer, r"C:\Users\Will\Desktop\test\test.gpkg", provider.encoding(), provider.crs())
-# points_provider = points_of_intersection.dataProvider()
-# QgsVectorFileWriter.writeAsVectorFormat(points_of_intersection, r"C:\Users\Will\Desktop\test\points.gpkg", points_provider.encoding(), points_provider.crs())
+provider = points_of_intersection.dataProvider()
+QgsVectorFileWriter.writeAsVectorFormat(points_of_intersection, r"C:\Users\Will\Desktop\test\test.gpkg", provider.encoding(), provider.crs())
 
 print ('-----------------------')
 print ('Done!')
