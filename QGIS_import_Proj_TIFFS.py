@@ -2,6 +2,7 @@ import os, sys, shutil, glob, re
 from qgis.core import *
 from qgis.analysis import QgsNativeAlgorithms
 from PyQt5.QtCore import QVariant
+from tiffs_to_features_helper import *
 
 # Provide constants
 local_gis_working_dir = os.path.join("C:", os.sep, "Users", os.getlogin(), "Desktop", "GIS")
@@ -28,9 +29,9 @@ captured_tiffs = 0
 tiffs_outside_domain = 0
 duplicates_purged = 0
 
-def correct_link(Link): #For some reason the links are stored as python paths with doubble slashes...which need to be changed to single slashes in the attribute field
-    corrected_link = Link.replace('\\\\', '\\')
-    return corrected_link
+# def correct_link(Link): #For some reason the links are stored as python paths with doubble slashes...which need to be changed to single slashes in the attribute field
+#     corrected_link = Link.replace('\\\\', '\\')
+#     return corrected_link
 
 def add_properties_to_new_feature(proj_no, proj_name, sheet_no):
     global first_run
@@ -68,29 +69,28 @@ def Add_Rater_outline_to_geopackage(image_path):
     processing.run("gdal:tileindex", params)
     return
 
-def get_proj_name_and_number_from_folder(folder):
-    root, folder = os.path.split(folder)
-    # arr_folder_name = re.split(r'\W+', folder, 1)
-    arr_folder_name = re.search(r'([a-zA-Z0-9]+)[\W|_]+([a-zA-Z0-9].+)',folder)
-    proj_no = arr_folder_name[1].strip()
-    proj_name = arr_folder_name[2].strip()
-    return proj_no, proj_name
+# def get_proj_name_and_number_from_folder(folder):
+#     root, folder = os.path.split(folder)
+#     arr_folder_name = re.search(r'([a-zA-Z0-9]+)[\W|_]+([a-zA-Z0-9].+)',folder)
+#     proj_no = arr_folder_name[1].strip()
+#     proj_name = arr_folder_name[2].strip()
+#     return proj_no, proj_name
 
-def get_sister_file_name(tif_file_path):
-    sister_file_name = re.sub(r'.tif$', '.tfw', tif_file_path, 1, re.IGNORECASE)
-    return sister_file_name
+# def get_sister_file_name(tif_file_path):
+#     sister_file_name = re.sub(r'.tif$', '.tfw', tif_file_path, 1, re.IGNORECASE)
+#     return sister_file_name
 
-def get_sheet_no(tif_file_path):
-    try:
-        sheet_number = re.search(r'(?:sheet[\s|_]+)(\w+)', tif_file_path, re.IGNORECASE).group(0) #TODO: Get only sheet number
-    except AttributeError:
-        sheet_number = ''
-        print ('No sheet number for the following file: ' + tif_file_path)
-    return sheet_number
+# def get_sheet_no(tif_file_path):
+#     try:
+#         sheet_number = re.search(r'(?:sheet[\s|_]+)(\w+)', tif_file_path, re.IGNORECASE).group(0) #TODO: Get only sheet number
+#     except AttributeError:
+#         sheet_number = ''
+#         print ('No sheet number for the following file: ' + tif_file_path)
+#     return sheet_number
 
-def get_proj_no(tif_file_path):
-    proj_no = re.search(r'\w+', tif_file_path).group(0)
-    return proj_no
+# def get_proj_no(tif_file_path):
+#     proj_no = re.search(r'\w+', tif_file_path).group(0)
+#     return proj_no
 
 def index_folder(folder_path):
     global total_tiffs
