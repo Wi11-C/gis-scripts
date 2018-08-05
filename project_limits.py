@@ -3,6 +3,7 @@ from qgis.core import *
 from qgis.analysis import QgsNativeAlgorithms
 from PyQt5.QtCore import QVariant
 from env_config import config
+from project_limits_helper import *
 
 # Provide constants
 
@@ -110,54 +111,29 @@ def create_intersection_points_layer(dissolved_road_layer, intersecting_line_lay
 #     return point_layer
 
 lay_roads = QgsVectorLayer(os.path.join(env.local_shape_dir, 'ENG.CENTERLINE.shp'), 'Roads', 'ogr')
-count = 0
-
-for fea in lay_roads.getFeatures():
-    count += 1
-
-print ("{} roads".format(count)) 
-
+print ("{} roads".format(CountFeatures(lay_roads))) 
 
 # Load and reproject the LWDD Canal Layer before combining it with the road layer
 lay_canals = processing.run("native:reprojectlayer", {'INPUT':os.path.join(env.local_shape_dir, 'Export_LWDD.shp'),'TARGET_CRS':'EPSG:102658','OUTPUT':'memory:'})['OUTPUT']
+print ("{} canals".format(CountFeatures(lay_canals))) 
 
-count = 0
-
-for fea in lay_canals.getFeatures():
-    count += 1
-
-print ("{} canals".format(count)) 
 temp_dissolved_roads = dissolve_lines(lay_roads, 'STREET')
-count = 0
+print ("{} dissolved roads".format(CountFeatures(temp_dissolved_roads))) 
 
-for fea in temp_dissolved_roads.getFeatures():
-    count += 1
-
-print ("{} dissolved roads".format(count)) 
 temp_dissolved_canals = dissolve_lines(lay_canals, 'CANAL_NAME')
-count = 0
-
-for fea in temp_dissolved_canals.getFeatures():
-    count += 1
-
-print ("{} dissolved canals".format(count)) 
+print ("{} dissolved canals".format(CountFeatures(temp_dissolved_canals))) 
 
 result_layer = combine_layers(temp_dissolved_roads, temp_dissolved_canals)
-count = 0
+print ("{} total".format(CountFeatures(result_layer))) 
 
-for fea in result_layer.getFeatures():
-    count += 1
+print ('computing points for canals')
+intersection_points_canals = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_canals)
+print ('computing poitns for roads')
+intersection_points_roads = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_roads)
 
-print ("{} total".format(count)) 
-
-points_of_intersection = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_canals)
-# points_of_intersection_slow(temp_dissolved_roads, temp_dissolved_canals)
-
-count = 0
-for fea in points_of_intersection.getFeatures():
-    count += 1
-
-print ("{} intersection points".format(count)) 
+print ('combining point layers')
+points_of_intersection = processing.run("native:mergevectorlayers", {'LAYERS':[intersection_points_canals, intersection_points_roads], 'CRS':'ESPG:102658','OUTPUT':'memory'})
+print ("{} intersection points".format(CountFeatures(points_of_intersection))) 
 
 # Save output
 provider = points_of_intersection.dataProvider()
