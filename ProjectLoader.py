@@ -1,8 +1,19 @@
-import os, csv
+import os, csv, re
 
 def LoadProjects(filepath):
-    with open(filepath, 'r') as csvfile:
+    with open(filepath, newline='') as csvfile:
         data = list(csv.reader(csvfile))
         return data
 
     return arr_projects
+
+class ProjectName:
+    self.RawName = ''
+    self.Number = ''
+    self.is_intersection = False
+    def __init__(self, name, number):
+        self.RawName = name
+        self.Number = number
+
+    def split_name(self):
+        
