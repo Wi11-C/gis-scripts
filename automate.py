@@ -72,6 +72,7 @@ Layers_to_package = [
     os.path.join(config.local_shape_dir, 'WUD.SSMANHOLE.shp'),
     os.path.join(config.local_shape_dir, 'WUD.SSPRESSURIZEDMAIN.shp'),
     os.path.join(config.local_shape_dir, 'WUD.WPRESSURIZEDMAIN.shp'),
+    os.path.join(config.local_shape_dir, 'old_projects.gpkg')
     QgsVectorLayer(os.path.join(config.local_shape_dir, 'ENG.CENTERLINE.shp|layerid=0|subset=\"TFARE_ROW\" IS NULL AND \"RESP_AUTH\" NOT LIKE \'FDOT\''), 'Local Roads', 'ogr'),
     QgsVectorLayer(os.path.join(config.local_shape_dir, 'ENG.CENTERLINE.shp|layerid=0|subset=\"TFARE_ROW\" IS NOT NULL OR \"RESP_AUTH\" = \'FDOT\''), 'Throughfare Roads', 'ogr'),
     QgsVectorLayer('crs=\'EPSG:3857\' filter=\'\' url=\'http://maps.co.palm-beach.fl.us/arcgis/rest/services/Ags/3/MapServer/6\' table=\"\" sql=', 'County Commission Districts', 'arcgisfeatureserver')
