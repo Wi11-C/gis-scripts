@@ -28,4 +28,4 @@ class ProjectName:
         for char in [',', ';']:         #find corrdior
             if self.RawName.find(char):
                 self.corridor = self.RawName.split(char, 1)[0].strip()
-
+                
