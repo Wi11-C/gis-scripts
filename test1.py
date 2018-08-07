@@ -1,7 +1,8 @@
 import unittest
 import env_config
-from tiffs_to_features_helper import *
-from project_limits_helper import *
+import tiffs_to_features_helper
+import project_limits_helper
+import ProjectLoader
 
 class Test_sheet_number(unittest.TestCase):
     def test_sheet_no(self):
@@ -13,9 +14,12 @@ class Test_sheet_number(unittest.TestCase):
     def test_sheet_no3(self):    
         self.assertEquals(get_sheet_no(r'sheet77'), "77")
 
-# class Test_import_helper(unittest.TestCase):
-#     def test_count(self):
-#         layer1=
+class Test_projectLoader(unittest.TestCase):
+    def test_name1(self):
+        proj = ProjectLoader.ProjectName('Bishoff Rd, Dead End to Jog Rd', '2016085')
+        self.assertEquals(proj.corridor, 'Bishoff Rd')
+        # self.assertEquals(proj.start, 'Dead End')
+        # self.assertEquals(proj.start, 'Jog Rd')
 
 class Test_TestIncrementDecrement(unittest.TestCase):
     def test_tiff(self):

@@ -19,6 +19,13 @@ class ProjectName:
         self.Number = number
 
     def split_name(self):
-        self.corridor = self.RawName.split('.',1)[0]
-        if self.corridor == '':
-            self.corridor = self.RawName.split(';', 1)[0]
+        for char in ['&', ' and ', ' over ']:       #Check if intersection
+            if self.RawName.find(char):
+                self.is_intersection = True
+                self.corridor = self.RawName.split(char, 1)[0].strip()
+                self.start = self.RawName.split(char, 1)[1].strip()
+                return
+        for char in [',', ';']:         #find corrdior
+            if self.RawName.find(char):
+                self.corridor = self.RawName.split(char, 1)[0].strip()
+
