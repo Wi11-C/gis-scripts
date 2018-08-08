@@ -6,13 +6,13 @@ import ProjectLoader
 
 class Test_sheet_number(unittest.TestCase):
     def test_sheet_no(self):
-        self.assertEquals(get_sheet_no(r'sheet_77'), "77")
+        self.assertEquals(tiffs_to_features_helper.get_sheet_no(r'sheet_77'), "77")
     
     def test_sheet_no2(self):
-        self.assertEquals(get_sheet_no(r'sheet 777'), "777")
+        self.assertEquals(tiffs_to_features_helper.get_sheet_no(r'sheet 777'), "777")
 
     def test_sheet_no3(self):    
-        self.assertEquals(get_sheet_no(r'sheet77'), "77")
+        self.assertEquals(tiffs_to_features_helper.get_sheet_no(r'sheet77'), "77")
 
 class Test_projectLoader(unittest.TestCase):
     def test_name1(self):
@@ -23,7 +23,7 @@ class Test_projectLoader(unittest.TestCase):
 
 class Test_TestIncrementDecrement(unittest.TestCase):
     def test_tiff(self):
-        self.assertEquals(correct_link(r'sheet\\\7'), r"sheet\\7")
+        self.assertEquals(tiffs_to_features_helper.correct_link(r'sheet\\\7'), r"sheet\\7")
 
     def test_config(self):
         config = env_config.config()
