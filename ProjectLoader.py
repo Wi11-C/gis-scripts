@@ -8,24 +8,32 @@ def LoadProjects(filepath):
     return arr_projects
 
 class ProjectName:
-    self.RawName = ''
-    self.Number = ''
-    self.corridor = ''
-    self.start = ''
-    self.end = ''
-    self.is_intersection = False
+    RawName = ''
+    Number = ''
+    corridor = ''
+    start = ''
+    end = ''
+    is_intersection = False
     def __init__(self, name, number):
         self.RawName = name
         self.Number = number
+        self.split_name()
 
     def split_name(self):
-        for char in ['&', ' and ', ' over ']:       #Check if intersection
-            if self.RawName.find(char):
+        second_half_of_rawname = ''
+        for char in ['&', ' and ', ' AND ', ' over ', ' OVER ']:       #Check if intersection
+            if self.RawName.find(char) > -1:
                 self.is_intersection = True
                 self.corridor = self.RawName.split(char, 1)[0].strip()
                 self.start = self.RawName.split(char, 1)[1].strip()
                 return
         for char in [',', ';']:         #find corrdior
-            if self.RawName.find(char):
+            if self.RawName.find(char) > -1:
                 self.corridor = self.RawName.split(char, 1)[0].strip()
-                
+                second_half_of_rawname = self.RawName.split(char, 1)[1].strip()
+                break
+        if second_half_of_rawname != '':
+            for char in ['to', 'TO']:
+                self.start = second_half_of_rawname.split(char, 1)[0].strip()
+                self.end = second_half_of_rawname.split(char, 1)[1].strip()
+        return
