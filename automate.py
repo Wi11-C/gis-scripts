@@ -75,7 +75,9 @@ Layers_to_package = [
     os.path.join(config.local_shape_dir, 'old_projects.gpkg'),
     QgsVectorLayer(os.path.join(config.local_shape_dir, 'ENG.CENTERLINE.shp|layerid=0|subset=\"TFARE_ROW\" IS NULL AND \"RESP_AUTH\" NOT LIKE \'FDOT\''), 'Local Roads', 'ogr'),
     QgsVectorLayer(os.path.join(config.local_shape_dir, 'ENG.CENTERLINE.shp|layerid=0|subset=\"TFARE_ROW\" IS NOT NULL OR \"RESP_AUTH\" = \'FDOT\''), 'Throughfare Roads', 'ogr'),
-    QgsVectorLayer('crs=\'EPSG:3857\' filter=\'\' url=\'http://maps.co.palm-beach.fl.us/arcgis/rest/services/Ags/3/MapServer/6\' table=\"\" sql=', 'County Commission Districts', 'arcgisfeatureserver')
+    QgsVectorLayer('crs=\'EPSG:3857\' filter=\'\' url=\'http://maps.co.palm-beach.fl.us/arcgis/rest/services/Ags/3/MapServer/6\' table=\"\" sql=', 'County Commission Districts', 'arcgisfeatureserver'),
+    os.path.join(config.local_shape_dir, 'SFWMD Canals.gpkg')
+    # QgsVectorLayer('crs=\'EPSG:3857\' filter=\'NAME is not NULL\' url=\'https://services1.arcgis.com/sDAPyc2rGRn7vf9B/arcgis/rest/services/AHED_Hydroedges/FeatureServer/0\' table=\"\" sql=', 'SFWMD Canals', 'arcgisfeatureserver')
     ]
 
 # Since we don't have epermits at home, remvove the layer to avoid error
@@ -86,7 +88,7 @@ if config.env == "PROD":
 
 Make_geopackage(Layers_to_package)
 Add_township_section_to_geopackage()
-PushToNetwork()
+# PushToNetwork()
 Create_KML()
 
 print ('Done!')
