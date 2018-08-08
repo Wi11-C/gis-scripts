@@ -88,7 +88,7 @@ if config.env == "PROD":
 
 Make_geopackage(Layers_to_package)
 Add_township_section_to_geopackage()
-# PushToNetwork()
+PushToNetwork()
 Create_KML()
 
 print ('Done!')
