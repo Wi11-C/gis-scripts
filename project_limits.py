@@ -57,7 +57,10 @@ def combine_layers(dissolved_roads_layer, dissolved_canals_layer):
             feature_id_counter += 1
     return out_layer
 
-def create_intersection_points_layer(dissolved_road_layer, intersecting_line_layer):
+"""
+Creates points on the first layer with a 'Name' attributre from the second layer where the two layers intersect 
+"""
+def create_intersection_points_layer(dissolved_road_layer, intersecting_line_layer, field_name):
     print ('Making points')
     timer_start = time.time()
     feature_id_counter = 1
@@ -72,7 +75,7 @@ def create_intersection_points_layer(dissolved_road_layer, intersecting_line_lay
             if (close_feature.geometry().intersects(road_feature.geometry())):                           #Possible bounding boxes collide but not features themselves
                 if not close_feature.geometry().equals(road_feature.geometry()):                         #We may run a layer against itself. Don't match feature to itself
                     pt = road_feature.geometry().intersection(close_feature.geometry())
-                    loc_name = close_feature['CANAL_NAME']
+                    loc_name = close_feature[field_name]
                     loc_feat = QgsFeature()
                     loc_feat.setGeometry(pt)
                     with edit(out_layer):
@@ -123,13 +126,13 @@ print ("{} dissolved roads".format(CountFeatures(temp_dissolved_roads)))
 temp_dissolved_canals = dissolve_lines(lay_canals, 'CANAL_NAME')
 print ("{} dissolved canals".format(CountFeatures(temp_dissolved_canals))) 
 
-result_layer = combine_layers(temp_dissolved_roads, temp_dissolved_canals)
-print ("{} total".format(CountFeatures(result_layer))) 
+# result_layer = combine_layers(temp_dissolved_roads, temp_dissolved_canals)
+# print ("{} total".format(CountFeatures(result_layer))) 
 
 print ('computing points for canals')
-intersection_points_canals = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_canals)
+intersection_points_canals = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_canals, 'CANAL_NAME')
 print ('computing poitns for roads')
-intersection_points_roads = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_roads)
+intersection_points_roads = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_roads, 'NAME')
 
 print ('combining point layers')
 points_of_intersection = processing.run("native:mergevectorlayers", {'LAYERS':[intersection_points_canals, intersection_points_roads], 'CRS':'ESPG:102658','OUTPUT':'memory'})

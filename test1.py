@@ -21,6 +21,22 @@ class Test_projectLoader(unittest.TestCase):
         # self.assertEquals(proj.start, 'Dead End')
         # self.assertEquals(proj.start, 'Jog Rd')
 
+    def test_cleaner(self):
+        proj = ProjectLoader.ProjectName('Bishoff rd., Dead End to Jog Rd', '2016085')
+        self.assertEquals(proj.corridor, 'Bishoff Rd')
+
+    def test_cleaner2(self):
+        proj = ProjectLoader.ProjectName('Bishoff rd N, Dead End to Jog Rd', '2016085')
+        self.assertEquals(proj.corridor, 'Bishoff Rd N')
+    
+    def test_cleaner3(self):
+        proj = ProjectLoader.ProjectName('Bishoff_rd, Dead End to Jog Rd', '2016085')
+        self.assertEquals(proj.corridor, 'Bishoff Rd')
+
+    def test_cleaner4(self):
+        proj = ProjectLoader.ProjectName('Bishoff rd north, Dead End to Jog Rd', '2016085')
+        self.assertEquals(proj.corridor, 'Bishoff Rd N')
+
 class Test_TestIncrementDecrement(unittest.TestCase):
     def test_tiff(self):
         self.assertEquals(tiffs_to_features_helper.correct_link(r'sheet\\\7'), r"sheet\\7")
