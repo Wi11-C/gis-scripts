@@ -3,9 +3,7 @@ import os, csv, re
 def LoadProjects(filepath):
     with open(filepath, newline='') as csvfile:
         data = list(csv.reader(csvfile))
-        return data
-
-    return arr_projects
+    return data
 
 class ProjectName:
     RawName = ''
@@ -21,6 +19,7 @@ class ProjectName:
         self.RawName = name.replace('_',' ')                            #remove any underscores if apparent
         self.Number = number
         self.split_name()
+        
         self.integrity_check()
         if self.has_errors:
             print ('Errors for project: {}'.format(self.RawName))
@@ -28,19 +27,19 @@ class ProjectName:
 
     def split_name(self):
         second_half_of_rawname = ''
-        for char in ['&', ' and ', ' AND ', ' over ', ' OVER ']:        #Check if intersection
+        for char in ['&', ' and ', ' AND ', ' over ', ' OVER ', ' at ', ' AT ', '@']:        #Check if intersection
             if  self.RawName.find(char) > -1:
                 self.is_intersection = True
                 self.intersection_first_road = self.clean_name(self.RawName.split(char, 1)[0].strip())
                 self.intersection_second_road = self.clean_name(self.RawName.split(char, 1)[1].strip())
                 return
-        for char in [',', ';']:                                         #find corridor
+        for char in [',', ';', ' from ', ' FROM ', ' FR ']:                                         #find corridor
             if self.RawName.find(char) > -1:
                 self.corridor = self.clean_name(self.RawName.split(char, 1)[0].strip())
                 second_half_of_rawname = self.RawName.split(char, 1)[1].strip()
                 break
         if second_half_of_rawname != '':
-            for char in ['to', 'TO']:
+            for char in [' to ', ' TO ']:
                 if second_half_of_rawname.find(char) > -1:
                     self.start = self.clean_name(second_half_of_rawname.split(char, 1)[0].strip())
                     self.end = self.clean_name(second_half_of_rawname.split(char, 1)[1].strip())

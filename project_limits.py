@@ -4,6 +4,7 @@ from qgis.analysis import QgsNativeAlgorithms
 from PyQt5.QtCore import QVariant
 from env_config import config
 from project_limits_helper import *
+import ProjectLoader
 
 # Provide constants
 
@@ -89,59 +90,66 @@ def create_intersection_points_layer(dissolved_road_layer, intersecting_line_lay
    
     return out_layer
 
-# def points_intersection_slow(road_layer, intersect_layer):
-#     feature_id_counter = 0
-#     timer_start = time.time()
-
-#     params = {
-#         'INPUT': dissolved_road_layer,
-#         'INTERSECT': intersecting_line_layer,
-#         'INPUT_FIELDS':['NAME'],
-#         'INTERSECT_FIELDS':['CANAL_NAME'],
-#         'OUTPUT':'memory:'
-#         }
-#     points_of_intersection_slow = processing.run("native:lineintersections", params)['OUTPUT']
-#     timer_end = time.time()
-#     print ("{} took {} seconds".format(create_intersection_points_layer.__name__, round(timer_end - timer_start, 2)))
-#     feature_id_counter = 0
-#     for f in points_of_intersection_slow.getFeatures():
-#         feature_id_counter += 1
-#     print ("{} points of intersection found".format(feature_id_counter))
-#     return
-
-# def make_points(layer):
-
-#     return point_layer
-
 lay_roads = QgsVectorLayer(os.path.join(env.local_shape_dir, 'ENG.CENTERLINE.shp'), 'Roads', 'ogr')
 print ("{} roads".format(CountFeatures(lay_roads))) 
 
 # Load and reproject the LWDD Canal Layer before combining it with the road layer
-lay_canals = processing.run("native:reprojectlayer", {'INPUT':os.path.join(env.local_shape_dir, 'Export_LWDD.shp'),'TARGET_CRS':'EPSG:102658','OUTPUT':'memory:'})['OUTPUT']
-print ("{} canals".format(CountFeatures(lay_canals))) 
+# lay_canals = processing.run("native:reprojectlayer", {'INPUT':os.path.join(env.local_shape_dir, 'Export_LWDD.shp'),'TARGET_CRS':'EPSG:102658','OUTPUT':'memory:'})['OUTPUT']
+# print ("{} canals".format(CountFeatures(lay_canals))) 
 
-temp_dissolved_roads = dissolve_lines(lay_roads, 'STREET')
-print ("{} dissolved roads".format(CountFeatures(temp_dissolved_roads))) 
+temp_dissolved_roads = dissolve_lines(lay_roads, 'STREET') #61985
+# print ("{} dissolved roads".format(CountFeatures(temp_dissolved_roads))) 
 
-temp_dissolved_canals = dissolve_lines(lay_canals, 'CANAL_NAME')
-print ("{} dissolved canals".format(CountFeatures(temp_dissolved_canals))) 
+# temp_dissolved_canals = dissolve_lines(lay_canals, 'CANAL_NAME')
+# print ("{} dissolved canals".format(CountFeatures(temp_dissolved_canals))) 
 
 # result_layer = combine_layers(temp_dissolved_roads, temp_dissolved_canals)
 # print ("{} total".format(CountFeatures(result_layer))) 
 
 print ('computing points for canals')
-intersection_points_canals = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_canals, 'CANAL_NAME')
+# intersection_points_canals = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_canals, 'CANAL_NAME')
 print ('computing poitns for roads')
-intersection_points_roads = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_roads, 'NAME')
+# intersection_points_roads = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_roads, 'NAME')
 
 print ('combining point layers')
-points_of_intersection = processing.run("native:mergevectorlayers", {'LAYERS':[intersection_points_canals, intersection_points_roads], 'CRS':'ESPG:102658','OUTPUT':'memory'})
-print ("{} intersection points".format(CountFeatures(points_of_intersection))) 
+# points_of_intersection = processing.run("native:mergevectorlayers", {'LAYERS':[intersection_points_canals, intersection_points_roads], 'CRS':'ESPG:102658','OUTPUT':'memory'})
+# print ("{} intersection points".format(CountFeatures(points_of_intersection))) 
 
 # Save output
-provider = points_of_intersection.dataProvider()
-QgsVectorFileWriter.writeAsVectorFormat(points_of_intersection, r"C:\Users\Will\Desktop\test\test.gpkg", provider.encoding(), provider.crs())
+# provider = points_of_intersection.dataProvider()
+# QgsVectorFileWriter.writeAsVectorFormat(points_of_intersection, r"C:\Users\Will\Desktop\test\test.gpkg", provider.encoding(), provider.crs())
 
+project_names = ProjectLoader.LoadProjects(os.path.join(env.local_gis_working_dir, "projects.csv"))
+
+error_count = 0
+project_count = 0
+
+for record in project_names:
+    project_count += 1
+    proj = ProjectLoader.ProjectName(record[1], record[0])
+    if proj.has_errors:
+        error_count += 1
+    else:
+        if proj.is_intersection:
+            for road in temp_dissolved_roads.getFeatures():
+                if road['STREET'].toString().lower() == proj.intersection_first_road.lower():
+                    print ('Road: {} | Name: {}'.format(road['STREET'].toString(), proj.intersection_first_road))
+        else:
+            for road in temp_dissolved_roads.getFeatures():
+                try: 
+                    rd = road['STREET'].toString().lower()
+                except:
+                    try:
+                        rd = road['STREET'].lower()
+                    except:
+                        print ('Error')
+                        rd = ''
+                if rd == proj.corridor.lower():
+                    print('Road: {} | Name: {}'.format(rd, proj.corridor))
+
+
+print ('{} projects, {} errors'.format(project_count, error_count))
+    
 print ('-----------------------')
 print ('Done!')
 
