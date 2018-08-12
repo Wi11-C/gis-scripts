@@ -40,7 +40,6 @@ class RoadName:
             for test_match in index[correct_suffix]:
                 # expression = r'\s+' + test_match + r'\.?\s*$'
                 # self.full_name = re.sub(expression, correct_suffix, street_name, 0, re.IGNORECASE).upper()
-                # self.break_into_parts(test_match)
 
                 pattern = r'(?:([nsew]|west|east|north|south)\.?\s+)?(.+?)\s+(' + test_match + ')\.?\s*([nsew]|west|east|north|south)?\.?$'
 
@@ -51,7 +50,6 @@ class RoadName:
                     self.corridor_type = matches.group(3)
                     self.corridor_suffix = matches.group(4)
                     self.is_road = True
-
                     return
         return
     
@@ -76,6 +74,8 @@ class ProjectName:
     intersection_second_road = ''
     is_intersection = False
     has_errors = False
+    no_errors = 0
+
     def __init__(self, name, number):
         self.RawName = name.replace('_',' ')                            #remove any underscores if apparent
         self.Number = number
@@ -108,9 +108,19 @@ class ProjectName:
     
     def integrity_check(self):
         if self.is_intersection:
-            if ((self.intersection_first_road == '') or (self.intersection_second_road == '')):
+            if self.intersection_first_road == '':
+                self.no_errors += 1
+            if self.intersection_second_road == '':
+                self.no_errors += 1
+            if no_errors > 0:
                 self.has_errors = True
         else:
-            if ((self.corridor == '') or (self.start == '') or (self.end == '')):
+            if self.corridor == '': 
+                self.no_errors += 1
+            if self.start == '':
+                self.no_errors += 1
+            if self.end == '':
+                self.no_errors += 1
+            if no_errors > 0:
                 self.has_errors = True
         return

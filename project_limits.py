@@ -142,19 +142,19 @@ for record in project_names:
         if proj.is_intersection:
             for road in temp_dissolved_roads.getFeatures():
                 if road['STREET'].upper() == proj.intersection_first_road.full_name:
-                    print ('Road: {} | Name: {}'.format(road['STREET'].toString(), proj.intersection_first_road.full_name))
+                    print ('Road: {} | Name: {}'.format(road['STREET'].upper(), proj.intersection_first_road.full_name))
         else:
             for road in temp_dissolved_roads.getFeatures():
                 try: 
-                    rd = road['STREET'].toString().lower()
+                    rd = road['STREET'].upper()
                 except:
                     try:
-                        rd = road['STREET'].lower()
+                        rd = road['STREET'].toString().upper()
                     except:
                         print ('Error')
                         rd = ''
-                if rd == proj.corridor.full_name.lower():
-                    print('Road: {} | Name: {}'.format(rd, proj.corridor.full_name))
+                if rd == proj.corridor.full_name.upper():
+                    print('Road: {} | Name: {}'.format(rd.upper(), proj.corridor.full_name))
 
 
 print ('{} projects, {} errors'.format(project_count, error_count))
