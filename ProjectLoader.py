@@ -11,13 +11,14 @@ class RoadName:
     corridor_name = ''
     corridor_type = ''
     corridor_suffix = ''
+    is_road = False
 
     def __init__(self, rawname):
-        self.full_name = self.CleanType(rawname).upper()
-        
+        self.full_name = rawname.upper()
+        self.CleanType()
         return
     
-    def CleanType(self, street_name):
+    def CleanType(self):
         index = {
             'rd': ['rd', 'road'],
             'st': ['st', 'street'],
@@ -37,11 +38,34 @@ class RoadName:
 
         for correct_suffix in index:
             for test_match in index[correct_suffix]:
-                expression = test_match + r'\.?$'
-                street_name = re.sub(expression, correct_suffix, street_name, 0, re.IGNORECASE)
+                # expression = r'\s+' + test_match + r'\.?\s*$'
+                # self.full_name = re.sub(expression, correct_suffix, street_name, 0, re.IGNORECASE).upper()
+                # self.break_into_parts(test_match)
 
-        return street_name
+                pattern = r'(?:([nsew]|west|east|north|south)\.?\s+)?(.+?)\s+(' + test_match + ')\.?\s*([nsew]|west|east|north|south)?\.?$'
+
+                matches = re.match(pattern, self.full_name, re.IGNORECASE)
+                if matches:
+                    self.corridor_prefix = matches.group(1)
+                    self.corridor_name = matches.group(2)
+                    self.corridor_type = matches.group(3)
+                    self.corridor_suffix = matches.group(4)
+                    self.is_road = True
+
+                    return
+        return
     
+    # def break_into_parts(self, test_match):
+        
+    #     pattern = r'(?:([nsew]|west|east|north|south)\.?\s+)?(.+?)\s+(' + test_match + ')\.?\s*([nsew]|west|east|north|south)?\.?$'
+
+    #     matches = re.match(pattern, self.full_name, re.IGNORECASE)
+    #     self.corridor_prefix = matches[0].upper()
+    #     self.corridor_name = matches[1].upper()
+    #     self.corridor_type = matches[2].upper()
+    #     self.corridor_suffix = matches[3].upper()
+    #     return
+
 class ProjectName:
     RawName = ''
     Number = ''
@@ -64,7 +88,7 @@ class ProjectName:
 
     def split_name(self):
         second_half_of_rawname = ''
-        for char in ['&', ' and ', ' AND ', ' over ', ' OVER ', ' at ', ' AT ', '@']:        #Check if intersection
+        for char in ['&', ' and ', ' AND ', ' bridge over ', ' BRIDGE OVER ', ' over ', ' OVER ', ' at ', ' AT ', '@']:        #Check if intersection
             if  self.RawName.find(char) > -1:
                 self.is_intersection = True
                 self.intersection_first_road = RoadName(self.RawName.split(char, 1)[0].strip())

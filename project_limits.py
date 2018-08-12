@@ -141,7 +141,7 @@ for record in project_names:
     else:
         if proj.is_intersection:
             for road in temp_dissolved_roads.getFeatures():
-                if road['STREET'].toString().lower() == proj.intersection_first_road.full_name.lower():
+                if road['STREET'].upper() == proj.intersection_first_road.full_name:
                     print ('Road: {} | Name: {}'.format(road['STREET'].toString(), proj.intersection_first_road.full_name))
         else:
             for road in temp_dissolved_roads.getFeatures():
