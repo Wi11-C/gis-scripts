@@ -18,7 +18,6 @@ class RoadName:
         return
     
     def CleanType(self, street_name):
-
         index = {
             'rd': ['rd', 'road'],
             'st': ['st', 'street'],
@@ -41,7 +40,7 @@ class RoadName:
                 expression = test_match + r'\.?$'
                 street_name = re.sub(expression, correct_suffix, street_name, 0, re.IGNORECASE)
 
-        return street_name 
+        return street_name
     
 class ProjectName:
     RawName = ''

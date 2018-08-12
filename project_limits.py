@@ -90,6 +90,13 @@ def create_intersection_points_layer(dissolved_road_layer, intersecting_line_lay
    
     return out_layer
 
+def remove_blanks(input_layer):
+    with edit(input_layer):
+        for r in input_layer.getFeatures():
+            if r['STREET'] == NULL:
+                input_layer.deleteFeature(r.id())
+    return input_layer
+
 lay_roads = QgsVectorLayer(os.path.join(env.local_shape_dir, 'ENG.CENTERLINE.shp'), 'Roads', 'ogr')
 print ("{} roads".format(CountFeatures(lay_roads))) 
 
@@ -97,8 +104,10 @@ print ("{} roads".format(CountFeatures(lay_roads)))
 # lay_canals = processing.run("native:reprojectlayer", {'INPUT':os.path.join(env.local_shape_dir, 'Export_LWDD.shp'),'TARGET_CRS':'EPSG:102658','OUTPUT':'memory:'})['OUTPUT']
 # print ("{} canals".format(CountFeatures(lay_canals))) 
 
-temp_dissolved_roads = dissolve_lines(lay_roads, 'STREET') #61985
-# print ("{} dissolved roads".format(CountFeatures(temp_dissolved_roads))) 
+temp_dissolved_roads = dissolve_lines(lay_roads, 'STREET')
+print ("{} dissolved roads".format(CountFeatures(temp_dissolved_roads))) 
+dissolved_roads = remove_blanks(temp_dissolved_roads)
+print ("{} dissolved roads".format(CountFeatures(dissolved_roads))) 
 
 # temp_dissolved_canals = dissolve_lines(lay_canals, 'CANAL_NAME')
 # print ("{} dissolved canals".format(CountFeatures(temp_dissolved_canals))) 
@@ -144,7 +153,7 @@ for record in project_names:
                     except:
                         print ('Error')
                         rd = ''
-                if rd == proj.corridor.lower():
+                if rd == proj.corridor.full_name.lower():
                     print('Road: {} | Name: {}'.format(rd, proj.corridor.full_name))
 
 
