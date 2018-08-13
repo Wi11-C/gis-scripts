@@ -3,7 +3,7 @@ from qgis.core import *
 from qgis.analysis import QgsNativeAlgorithms
 from PyQt5.QtCore import QVariant
 from env_config import config
-from project_limits_helper import *
+from project_limits_helper import CountFeatures
 import ProjectLoader
 
 # Provide constants
@@ -97,64 +97,117 @@ def remove_blanks(input_layer):
                 input_layer.deleteFeature(r.id())
     return input_layer
 
+def get_point(point_layer, name):
+    for point in point_layer.getFeatures():
+        if name == point['NAME']:
+            return point
+    return None
+
+def get_line_feature(road_layer, name):
+    for rd in road_layer.getFeatures():
+        if name.full_name == rd['STREET']:
+            return rd
+    return None
+
+def make_layers_for_op(feat_rd, arr_feats_pt):
+    temp_road_layer = QgsVectorLayer("Line?crs=EPSG:102658&index=yes", "temproad", "memory")
+    temp_point_layer = QgsVectorLayer("Point?crs=EPSG:102658&index=yes", "temppoints", "memory")
+    with edit(temp_road_layer):
+        temp_road_layer.dataProvider().addFeature(feat_rd)
+    with edit(temp_point_layer):
+        for pt in arr_feats_pt:
+            temp_point_layer.dataProvider().addFeature(pt)
+    return temp_road_layer, temp_point_layer
+
 lay_roads = QgsVectorLayer(os.path.join(env.local_shape_dir, 'ENG.CENTERLINE.shp'), 'Roads', 'ogr')
 print ("{} roads".format(CountFeatures(lay_roads))) 
 
 # Load and reproject the LWDD Canal Layer before combining it with the road layer
-# lay_canals = processing.run("native:reprojectlayer", {'INPUT':os.path.join(env.local_shape_dir, 'Export_LWDD.shp'),'TARGET_CRS':'EPSG:102658','OUTPUT':'memory:'})['OUTPUT']
-# print ("{} canals".format(CountFeatures(lay_canals))) 
+lay_canals = processing.run("native:reprojectlayer", {'INPUT':os.path.join(env.local_shape_dir, 'Export_LWDD.shp'),'TARGET_CRS':'EPSG:102658','OUTPUT':'memory:'})['OUTPUT']
+print ("{} canals".format(CountFeatures(lay_canals))) 
 
 temp_dissolved_roads = dissolve_lines(lay_roads, 'STREET')
 print ("{} dissolved roads".format(CountFeatures(temp_dissolved_roads))) 
 dissolved_roads = remove_blanks(temp_dissolved_roads)
 print ("{} dissolved roads".format(CountFeatures(dissolved_roads))) 
 
-# temp_dissolved_canals = dissolve_lines(lay_canals, 'CANAL_NAME')
-# print ("{} dissolved canals".format(CountFeatures(temp_dissolved_canals))) 
-
-# result_layer = combine_layers(temp_dissolved_roads, temp_dissolved_canals)
-# print ("{} total".format(CountFeatures(result_layer))) 
-
 print ('computing points for canals')
-# intersection_points_canals = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_canals, 'CANAL_NAME')
-print ('computing poitns for roads')
-# intersection_points_roads = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_roads, 'NAME')
+intersection_points_canals = create_intersection_points_layer(temp_dissolved_roads, lay_canals, 'CANAL_NAME')
+print ('computing points for roads')
+intersection_points_roads = create_intersection_points_layer(temp_dissolved_roads, temp_dissolved_roads, 'NAME')
 
-print ('combining point layers')
-# points_of_intersection = processing.run("native:mergevectorlayers", {'LAYERS':[intersection_points_canals, intersection_points_roads], 'CRS':'ESPG:102658','OUTPUT':'memory'})
-# print ("{} intersection points".format(CountFeatures(points_of_intersection))) 
+# print ('combining point layers')
+points_of_intersection = processing.run("native:mergevectorlayers", {'LAYERS':[intersection_points_canals, intersection_points_roads], 'CRS':'ESPG:102658','OUTPUT':'memory'})['OUTPUT']
+print ("{} intersection points".format(CountFeatures(points_of_intersection))) 
 
 # Save output
-# provider = points_of_intersection.dataProvider()
-# QgsVectorFileWriter.writeAsVectorFormat(points_of_intersection, r"C:\Users\Will\Desktop\test\test.gpkg", provider.encoding(), provider.crs())
+provider = points_of_intersection.dataProvider()
+QgsVectorFileWriter.writeAsVectorFormat(points_of_intersection, r"C:\Users\Will\Desktop\test\test.gpkg", provider.encoding(), provider.crs())
 
 project_names = ProjectLoader.LoadProjects(os.path.join(env.local_gis_working_dir, "projects.csv"))
 
 error_count = 0
 project_count = 0
 
-for record in project_names:
-    project_count += 1
+def record_to_layers(road_layer, point_layer, record):
     proj = ProjectLoader.ProjectName(record[1], record[0])
     if proj.has_errors:
-        error_count += 1
-    else:
-        if proj.is_intersection:
-            for road in temp_dissolved_roads.getFeatures():
-                if road['STREET'].upper() == proj.intersection_first_road.full_name:
-                    print ('Road: {} | Name: {}'.format(road['STREET'].upper(), proj.intersection_first_road.full_name))
+        return []
+    rd = None
+    pt1 = None
+    pt2 = None
+    temp_road_layer = None
+    temp_point_layer = None
+    if proj.is_intersection:
+        rd = get_line_feature(dissolved_roads, proj.intersection_first_road)
+        # filter only those points on the line feature
+        pt1 = get_point(points_of_intersection, proj.intersection_second_road)
+        if ((rd is None) or (pt1 is None)):
+            print ('Error: Not all features not found')
+            return []
         else:
-            for road in temp_dissolved_roads.getFeatures():
-                try: 
-                    rd = road['STREET'].upper()
-                except:
-                    try:
-                        rd = road['STREET'].toString().upper()
-                    except:
-                        print ('Error')
-                        rd = ''
-                if rd == proj.corridor.full_name.upper():
-                    print('Road: {} | Name: {}'.format(rd.upper(), proj.corridor.full_name))
+            temp_road_layer, temp_point_layer = make_layers_for_op(rd, [pt1])
+    else:
+        rd = get_line_feature(dissolved_roads, proj.corridor)
+        pt1 = get_point(points_of_intersection, proj.start)
+        pt2 = get_point(points_of_intersection, proj.end)
+        if ((rd is None) or (pt1 is None) or (pt2 is None)):
+            print ('Error: Not all features not found')
+            return []
+        else:
+            temp_road_layer, temp_point_layer = make_layers_for_op(rd, [pt1, pt2])
+    
+    return [temp_road_layer, temp_point_layer]     
+
+for record in project_names:
+    project_count += 1
+    arr_layers = record_to_layers(dissolved_roads, points_of_intersection, record)
+    if len(arr_layers) == 2:
+        print ('SUCCESS: Rd:{} pts:{}'.format(CountFeatures(arr_layers[0]), CountFeatures(arr_layers[1])))
+    else:
+        error_count += 1     
+        
+
+        # if proj.is_intersection:
+        #     for road in temp_dissolved_roads.getFeatures():
+        #         if road['STREET'].upper() == proj.intersection_first_road.full_name:
+        #             with edit(temp_road_layer):
+        #                 temp_road_layer.dataProvider().addFeature(road)
+        #             point = get_point(points_of_intersection, road['STREET'])
+
+        #             print ('Road: {} | Name: {}'.format(road['STREET'].upper(), proj.intersection_first_road.full_name))
+        # else:
+        #     for road in temp_dissolved_roads.getFeatures():
+        #         try: 
+        #             rd = road['STREET'].upper()
+        #         except:
+        #             try:
+        #                 rd = road['STREET'].toString().upper()
+        #             except:
+        #                 print ('Error')
+        #                 rd = ''
+        #         if rd == proj.corridor.full_name.upper():
+        #             print('Road: {} | Name: {}'.format(rd.upper(), proj.corridor.full_name))
 
 
 print ('{} projects, {} errors'.format(project_count, error_count))
