@@ -49,7 +49,7 @@ def Create_KML():
 
 def Update_SFWMD_layer(layer_path):
     print ('Updating SFWMD Layer....getting latest from server')
-    SFWMD_layer = QgsVectorLayer('crs=\'EPSG:3857\' filter=\'NAME is not NULL\' url=\'https://services1.arcgis.com/sDAPyc2rGRn7vf9B/arcgis/rest/services/AHED_Hydroedges/FeatureServer/0\' table=\"\" sql=', 'SFWMD Canals', 'arcgisfeatureserver')
+    SFWMD_layer = QgsVectorLayer('crs=\'EPSG:3857\' filter=\'NAME is not NULL\' url=\'https://services1.arcgis.com/sDAPyc2rGRn7vf9B/arcgis/rest/services/AHED_Hydroedges/FeatureServer/0\' table=\"\" sql=', 'SFWMD_CANALS', 'arcgisfeatureserver')
     
     print ('Processing SFWMD Layer...deleting features outside county limits')
     SFWMD_local_layer = processing.run("native:clip", {'INPUT':SFWMD_layer,'OVERLAY':'C:/Users/wcarey/Desktop/GIS/NEWDB/countyBoundry.gpkg','OUTPUT':'memory:'})['OUTPUT']
@@ -68,6 +68,7 @@ def Update_SFWMD_layer(layer_path):
     provider = SFWMD_local_layer.dataProvider()
     QgsVectorFileWriter.writeAsVectorFormat(SFWMD_local_layer, layer_path, provider.encoding(), provider.crs())
     SFWMD_local_layer = None
+    # TODO: Clean up to either merge LWDD with SFWMD or connect SFWMD lines that break at roads
     return
 
 def Compile_layers():
@@ -90,7 +91,7 @@ def Compile_layers():
         os.path.join(config.local_shape_dir, 'WUD.SSPRESSURIZEDMAIN.shp'),
         os.path.join(config.local_shape_dir, 'WUD.WPRESSURIZEDMAIN.shp'),
         os.path.join(config.local_shape_dir, 'old_projects.gpkg'),
-        # os.path.join(config.local_shape_dir, 'SFWMD Canals.gpkg'), TODO: Figure out why this is broke
+        os.path.join(config.local_shape_dir, 'SFWMD_CANALS.gpkg'),
         QgsVectorLayer(os.path.join(config.local_shape_dir, 'ENG.CENTERLINE.shp|layerid=0|subset=\"TFARE_ROW\" IS NULL AND \"RESP_AUTH\" NOT LIKE \'FDOT\''), 'Local Roads', 'ogr'),
         QgsVectorLayer(os.path.join(config.local_shape_dir, 'ENG.CENTERLINE.shp|layerid=0|subset=\"TFARE_ROW\" IS NOT NULL OR \"RESP_AUTH\" = \'FDOT\''), 'Throughfare Roads', 'ogr'),
         QgsVectorLayer('crs=\'EPSG:3857\' filter=\'\' url=\'http://maps.co.palm-beach.fl.us/arcgis/rest/services/Ags/3/MapServer/6\' table=\"\" sql=', 'County Commission Districts', 'arcgisfeatureserver')
@@ -111,7 +112,7 @@ QgsApplication.initQgis()
 project = QgsProject.instance()
 
 if update_SFWMD_now:
-    remove_local_package(os.path.join(config.local_shape_dir,'SWFMD Canals.gpkg'))
+    remove_local_package(os.path.join(config.local_shape_dir,'SFWMD_CANALS.gpkg'))
 
 project.read(os.path.join(config.local_gis_working_dir, 'MakePackageMap.qgs'))
 
@@ -124,7 +125,7 @@ QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
 # PROJECT LOGIC
 remove_local_package(config.local_geopackage_path)
 if update_SFWMD_now:
-    Update_SFWMD_layer(os.path.join(config.local_shape_dir,'SWFMD Canals.gpkg'))
+    Update_SFWMD_layer(os.path.join(config.local_shape_dir,'SFWMD_CANALS.gpkg'))
 Layers_to_package = Compile_layers()  
 Make_geopackage(Layers_to_package)
 Add_township_section_to_geopackage()
