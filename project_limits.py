@@ -182,7 +182,7 @@ def record_to_layers(road_layer, point_layer, record):
         rd = get_line_feature(dissolved_roads, proj.intersection_first_road)
         # filter only those points on the line feature
         pts = get_points_on_line(rd, point_dict, point_index)
-        if CountFeatures(pts) == 0:
+        if CountFeatures(pts) < 1:
             return []
         pt1 = get_point(pts, proj.intersection_second_road)
         if ((rd is None) or (pt1 is None)):
@@ -193,7 +193,7 @@ def record_to_layers(road_layer, point_layer, record):
     else:
         rd = get_line_feature(dissolved_roads, proj.corridor)
         pts = get_points_on_line(rd, point_dict, point_index)
-        if CountFeatures(pts) == 0:
+        if CountFeatures(pts) < 1:
             return []
         pt1 = get_point(pts, proj.start)
         pt2 = get_point(pts, proj.end)
