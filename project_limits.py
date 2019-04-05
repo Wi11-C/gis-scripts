@@ -9,14 +9,14 @@ import ProjectLoader
 # Provide constants
 
 env = config()
-QgsApplication.setPrefixPath(r"C:\Program Files\QGIS 3.2", True)
+QgsApplication.setPrefixPath(r"C:\Program Files\QGIS 3.4", True)
 app = QgsApplication([], False)
 QgsApplication.initQgis()
 
 project = QgsProject.instance()
 project.read(os.path.join(env.local_gis_working_dir, 'MakePackageMap.qgs'))
 
-sys.path.append(r'C:\Program Files\QGIS 3.2\apps\qgis\python\plugins')
+sys.path.append(r'C:\Program Files\QGIS 3.4\apps\qgis\python\plugins')
 from processing.core.Processing import Processing
 Processing.initialize()
 import processing

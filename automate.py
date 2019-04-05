@@ -77,6 +77,7 @@ def Compile_layers():
         os.path.join(config.local_shape_dir, 'ENG.ROAD_PROJECTS.shp'),
         os.path.join(config.local_shape_dir, 'ENG.SIGNAL_PTS_MULTI.shp'),
         os.path.join(config.local_shape_dir, 'ENG.TIM_FUTURE_TFARE_LINE.shp'),
+        os.path.join(config.local_shape_dir, 'ENG.COMM_DIST_PY.shp'),
         os.path.join(config.local_shape_dir, 'Export_LWDD.shp'),
         os.path.join(config.local_shape_dir, 'ORTHO_GRID_PY.shp'),
         os.path.join(config.local_shape_dir, 'PAO.PARCELS.shp'),
@@ -92,12 +93,13 @@ def Compile_layers():
         os.path.join(config.local_shape_dir, 'WUD.WPRESSURIZEDMAIN.shp'),
         os.path.join(config.local_shape_dir, 'old_projects.gpkg'),
         os.path.join(config.local_shape_dir, 'SFWMD_CANALS.gpkg'),
+		os.path.join(config.local_shape_dir, 'stormw_pts.shp'),
+		os.path.join(config.local_shape_dir, 'stormw_lin.shp'),
         QgsVectorLayer(os.path.join(config.local_shape_dir, 'ENG.CENTERLINE.shp|layerid=0|subset=\"TFARE_ROW\" IS NULL AND \"RESP_AUTH\" NOT LIKE \'FDOT\''), 'Local Roads', 'ogr'),
-        QgsVectorLayer(os.path.join(config.local_shape_dir, 'ENG.CENTERLINE.shp|layerid=0|subset=\"TFARE_ROW\" IS NOT NULL OR \"RESP_AUTH\" = \'FDOT\''), 'Throughfare Roads', 'ogr'),
-        QgsVectorLayer('crs=\'EPSG:3857\' filter=\'\' url=\'http://maps.co.palm-beach.fl.us/arcgis/rest/services/Ags/3/MapServer/6\' table=\"\" sql=', 'County Commission Districts', 'arcgisfeatureserver')
+        QgsVectorLayer(os.path.join(config.local_shape_dir, 'ENG.CENTERLINE.shp|layerid=0|subset=\"TFARE_ROW\" IS NOT NULL OR \"RESP_AUTH\" = \'FDOT\''), 'Throughfare Roads', 'ogr')
         ]
 
-    # Since we don't have epermits at home, remvove the layer to avoid error
+    # Since we don't have epermits at home, dont add the layer to avoid error
     if config.env == "PROD":
         Layers_to_package.append(
             QgsVectorLayer('crs=\'EPSG:3857\' filter=\'\' url=\'http://maps.pbcgov.org/arcgis/rest/services/Ags/3/MapServer/0\' table=\"\" sql=', 'ePermits', 'arcgisfeatureserver')
@@ -105,7 +107,7 @@ def Compile_layers():
     return Layers_to_package
 
 # PROJECT SETUP
-QgsApplication.setPrefixPath(r"C:\Program Files\QGIS 3.2", True)
+QgsApplication.setPrefixPath(r"C:\Program Files\QGIS 3.4", True)
 app = QgsApplication([], True)
 QgsApplication.initQgis()
 
@@ -116,7 +118,7 @@ if update_SFWMD_now:
 
 project.read(os.path.join(config.local_gis_working_dir, 'MakePackageMap.qgs'))
 
-sys.path.append(r'C:\Program Files\QGIS 3.2\apps\qgis\python\plugins')
+sys.path.append(r'C:\Program Files\QGIS 3.4\apps\qgis\python\plugins')
 from processing.core.Processing import Processing
 Processing.initialize()
 import processing
