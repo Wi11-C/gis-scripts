@@ -15,3 +15,4 @@ def SplitLayer(layer, num_parts):
     for i in range(num_parts-1):
 
         arr_out.append(lyr)
+    return

@@ -117,7 +117,25 @@ def make_layers_for_op(feat_rd, arr_feats_pt):
     with edit(temp_point_layer):
         for pt in arr_feats_pt:
             temp_point_layer.dataProvider().addFeature(pt)
-    return temp_road_layer, temp_point_layer
+    return temp_road_layer, temp_point_layer 
+
+def create_feature_index(layer):
+    out_dict={}
+    out_index = QgsSpatialIndex()
+    for ft in layer.getFeatures():
+        out_dict[ft.id()] = ft
+        out_index.insertFeature(ft)
+    return out_dict, out_index
+
+def get_points_on_line(line_feature, dict_points, index_points):
+    idsList = index_points.intersects(line_feature.geometry().boundingBox())
+    out_point_layer = QgsVectorLayer("Line?crs=EPSG:102658&index=yes", "temppoints", "memory")
+    if len(idsList) > 1:
+        with edit(out_point_layer):
+            for id in idsList:
+                if (dict_points[id].geometry().buffer(2,5).intersect(line_feature.geometry())):
+                    out_point_layer.dataProvider().addFeature(dict_points[id])
+    return out_point_layer
 
 lay_roads = QgsVectorLayer(os.path.join(env.local_shape_dir, 'ENG.CENTERLINE.shp'), 'Roads', 'ogr')
 print ("{} roads".format(CountFeatures(lay_roads))) 
@@ -158,10 +176,15 @@ def record_to_layers(road_layer, point_layer, record):
     pt2 = None
     temp_road_layer = None
     temp_point_layer = None
+    point_dict, point_index = create_feature_index(point_layer)
+
     if proj.is_intersection:
         rd = get_line_feature(dissolved_roads, proj.intersection_first_road)
         # filter only those points on the line feature
-        pt1 = get_point(points_of_intersection, proj.intersection_second_road)
+        pts = get_points_on_line(rd, point_dict, point_index)
+        if CountFeatures(pts) < 1:
+            return []
+        pt1 = get_point(pts, proj.intersection_second_road)
         if ((rd is None) or (pt1 is None)):
             print ('Error: Not all features not found')
             return []
@@ -169,8 +192,11 @@ def record_to_layers(road_layer, point_layer, record):
             temp_road_layer, temp_point_layer = make_layers_for_op(rd, [pt1])
     else:
         rd = get_line_feature(dissolved_roads, proj.corridor)
-        pt1 = get_point(points_of_intersection, proj.start)
-        pt2 = get_point(points_of_intersection, proj.end)
+        pts = get_points_on_line(rd, point_dict, point_index)
+        if CountFeatures(pts) < 1:
+            return []
+        pt1 = get_point(pts, proj.start)
+        pt2 = get_point(pts, proj.end)
         if ((rd is None) or (pt1 is None) or (pt2 is None)):
             print ('Error: Not all features not found')
             return []
